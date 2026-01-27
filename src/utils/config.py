@@ -21,9 +21,25 @@ def validate_config(config: Dict) -> bool:
     
     # בדיקת הגדרות הדגימה
     sampling = config['testing']['sampling']
-    if sampling['measurements_count'] <= 0:
+    if sampling.get('measurements_count', 0) <= 0:
         raise ValueError("measurements_count must be positive")
-    if sampling['sampling_frequency_hz'] <= 0:
+    if sampling.get('sampling_frequency_hz', 0) <= 0:
         raise ValueError("sampling_frequency_hz must be positive")
-    
-    return True 
+    if sampling.get('total_duration_seconds', 0) <= 0:
+        raise ValueError("total_duration_seconds must be positive")
+
+    # בדיקה שהקונפיגורציה אפשרית - הזמן המינימלי לא חורג מה-SLA
+    measurements_count = sampling['measurements_count']
+    sampling_frequency_hz = sampling['sampling_frequency_hz']
+    total_duration_seconds = sampling['total_duration_seconds']
+
+    interval = 1.0 / sampling_frequency_hz
+    minimum_time = (measurements_count - 1) * interval
+    if minimum_time > total_duration_seconds:
+        raise ValueError(
+            f"Impossible configuration: need minimum {minimum_time:.2f}s "
+            f"to collect {measurements_count} measurements at {sampling_frequency_hz}Hz, "
+            f"but SLA is only {total_duration_seconds}s"
+        )
+
+    return True
