@@ -1,3 +1,5 @@
+
+
 from src.testing.test_framework import AmmeterTestFramework
 
 def main():
@@ -19,4 +21,4 @@ def main():
         print(f"Standard deviation: {result['analysis']['std_dev']:.3f} A")
 
 if __name__ == "__main__":
-    main() 
+    main()

@@ -34,4 +34,7 @@ if __name__ == "__main__":
     request_current_from_ammeter(5001, b'MEASURE_ENTES -get_data')  # Request from ENTES Ammeter
     request_current_from_ammeter(5002, b'MEASURE_CIRCUTOR -get_measurement')  # Request from CIRCUTOR Ammeter
 
+    while True:
+        time.sleep(1)
+
     pass

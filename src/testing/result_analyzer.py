@@ -38,24 +38,26 @@ class ResultAnalyzer:
         advanced_results = {
             "skewness": float(stats.skew(values)),  # א-סימטריה
             "kurtosis": float(stats.kurtosis(values)),  # התפלגות
-            "confidence_interval_95": list(stats.t.interval(
-                alpha=0.95,
+            #המרה ל FLOAT
+            "confidence_interval_95": list(map(float, stats.t.interval(
+                confidence=0.95,
                 df=len(values)-1,
                 loc=np.mean(values),
                 scale=stats.sem(values)
-            )),
+            ))),
         }
 
         # בדיקת נורמליות
         _, normality_p_value = stats.normaltest(values)
-        advanced_results["is_normal_distribution"] = normality_p_value > 0.05
+        # המרה ל BOOL
+        advanced_results["is_normal_distribution"] = bool(normality_p_value > 0.05)
 
         # זיהוי חריגים
-        q1 = np.percentile(values, 25)
-        q3 = np.percentile(values, 75)
+        q1 = float(np.percentile(values, 25))
+        q3 = float(np.percentile(values, 75))
         iqr = q3 - q1
         outlier_bounds = (q1 - 1.5 * iqr, q3 + 1.5 * iqr)
         outliers = [v for v in values if v < outlier_bounds[0] or v > outlier_bounds[1]]
-        advanced_results["outliers_count"] = len(outliers)
+        advanced_results["outliers_count"] = int(len(outliers))
         
         return advanced_results 

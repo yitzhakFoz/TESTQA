@@ -1,3 +1,4 @@
+import pprint
 import time
 import uuid
 from datetime import datetime
@@ -7,20 +8,23 @@ from ..utils.config import load_config
 from .data_collector import DataCollector
 from .result_analyzer import ResultAnalyzer
 from .visualizer import DataVisualizer
+from ..utils.logger import TestLogger
 
 class AmmeterTestFramework:
     def __init__(self, config_path: str = "config/test_config.yaml"):
         self.config = load_config(config_path)
-        self.data_collector = DataCollector(self.config)
+        self.test_id = str(uuid.uuid4())
+        self.logger = TestLogger(self.test_id)
+        self.data_collector = DataCollector(self.config, self.logger)
         self.result_analyzer = ResultAnalyzer(self.config)
         self.visualizer = DataVisualizer(self.config)
-        self.test_id = str(uuid.uuid4())
-        
+
     def run_test(self, ammeter_type: str) -> Dict:
         """
         הרצת בדיקה מלאה על אמפרמטר ספציפי
         """
         # איסוף נתונים
+        self.logger.info(f"Starting test for ammeter: {ammeter_type}")
         measurements = self.data_collector.collect_measurements(
             ammeter_type=ammeter_type,
             test_id=self.test_id
@@ -62,10 +66,10 @@ class AmmeterTestFramework:
         """
         import json
         import os
-        
+
         save_path = self.config["result_management"]["save_path"]
-        filename = f"{save_path}/{results['metadata']['test_id']}.json"
-        
+        filename = f"{save_path}/{results['metadata']['test_id']}_{results['metadata']['ammeter_type']}.json"
+
         os.makedirs(save_path, exist_ok=True)
         with open(filename, 'w') as f:
-            json.dump(results, f, indent=4) 
+            json.dump(results, f, indent=4)
