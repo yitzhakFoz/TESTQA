@@ -7,6 +7,8 @@ from ..utils.config import load_config
 from .data_collector import DataCollector
 from .result_analyzer import ResultAnalyzer
 from .visualizer import DataVisualizer
+from .result_manager import ResultManager
+
 
 class AmmeterTestFramework:
     def __init__(self, config_path: str = "config/test_config.yaml"):
@@ -14,6 +16,7 @@ class AmmeterTestFramework:
         self.data_collector = DataCollector(self.config)
         self.result_analyzer = ResultAnalyzer(self.config)
         self.visualizer = DataVisualizer(self.config)
+        self.result_manager = ResultManager(self.config)
         self.test_id = str(uuid.uuid4())
         
     def run_test(self, ammeter_type: str) -> Dict:
@@ -60,19 +63,37 @@ class AmmeterTestFramework:
             "analysis": analysis_results
         }
 
-        self._save_results(results)
+        self.result_manager.save(results)
         return results
 
-    def _save_results(self, results: Dict) -> None:
+    def get_result(self, test_id: str) -> Optional[Dict]:
         """
-        שמירת תוצאות הבדיקה
+        אחזור תוצאות בדיקה לפי מזהה
         """
-        import json
-        import os
-        
-        save_path = self.config["result_management"]["save_path"]
-        filename = f"{save_path}/{results['metadata']['test_id']}.json"
-        
-        os.makedirs(save_path, exist_ok=True)
-        with open(filename, 'w') as f:
-            json.dump(results, f, indent=4) 
+        return self.result_manager.load(test_id)
+
+    def list_results(self, ammeter_type: Optional[str] = None) -> List[Dict]:
+        """
+        רשימת כל תוצאות הבדיקות
+        """
+        if ammeter_type:
+            return self.result_manager.find_by_ammeter(ammeter_type)
+        return self.result_manager.list_all()
+
+    def compare_results(self, test_ids: List[str]) -> Dict:
+        """
+        השוואה בין מספר תוצאות בדיקה
+        """
+        return self.result_manager.compare(test_ids)
+
+    def get_latest_result(self, ammeter_type: Optional[str] = None) -> Optional[Dict]:
+        """
+        אחזור התוצאה האחרונה
+        """
+        return self.result_manager.get_latest(ammeter_type)
+
+    def get_results_statistics(self) -> Dict:
+        """
+        סטטיסטיקות על כל הבדיקות
+        """
+        return self.result_manager.get_statistics()
